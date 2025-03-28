@@ -1,0 +1,18 @@
+# node_modules: dépendances installées avec npm
+node_modules/
+
+# fichier de log des erreurs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# fichiers créés par Jest pour les tests
+coverage/
+
+# dossier de production si jamais tu build
+dist/
+
+# fichiers système (macOS, VSCode, etc.)
+.DS_Store
+.env
+.vscode/
