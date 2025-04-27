@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-
-"""
-Ce module contient une fonction add qui additionne deux nombres flottants.
-"""
+""" Task 0: Basic annotations - add """
 
 
 def add(a: float, b: float) -> float:
-        """Retourne la somme de deux nombres flottants."""
+        """ Takes float a & float b as args and returns their sum as a float """
         return a + b
