@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+Il prend une liste de flottants et retourne leur somme sous forme de flottant.
+"""
 from typing import List
 
 
