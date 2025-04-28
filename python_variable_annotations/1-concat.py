@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Ce module contient une fonction concat qui concatène deux chaînes de caractères.
+module contient une fonction concat qui concatène deux chaînes de caractères.
 """
 
 
