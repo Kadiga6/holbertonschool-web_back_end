@@ -1,53 +1,97 @@
-const express = require('express');        // Importer Express
-const fs = require('fs').promises;         // Utiliser les promesses pour lire les fichiers
-const app = express();                      // Créer une instance d’Express
+const express = require('express'); // Import express module
+const fs = require('fs'); // Import fs module
 
-// Fonction pour compter les étudiants depuis un fichier CSV
-async function countStudents(path) {
-	try {
-		const data = await fs.readFile(path, 'utf-8');  // Lire le fichier de façon asynchrone
-		const lines = data.trim().split('\n');          // Séparer en lignes
-		const students = lines.slice(1);                 // Enlever l’en-tête
-		const fields = {};                               // Stocker les étudiants par filière
-
-		for (const student of students) {
-			if (student.trim() === '') continue;          // Ignorer les lignes vides
-			const parts = student.split(',');
-			const field = parts[3];
-			const firstName = parts[0];
-			if (!fields[field]) fields[field] = [];
-			fields[field].push(firstName);
-		}
-
-		let response = `Number of students: ${students.length}\n`;
-		for (const field in fields) {
-			response += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
-		}
-		return response.trim();
-	} catch (err) {
-		throw new Error('Cannot load the database');
+const app = express(); // Create an express application instance
+const PORT = 1245; // port number for the server to listen on
+const HOST = 'localhost';
+const DB_FILE = process.argv.length > 2 ? process.argv[2] : ''; // path to the database file
+/**
+ * Counts the students in a CSV data file.
+ * @param {String} Path The path to the CSV database file.
+ * @author Alex Arévalo <https://github.com/Alexoat76>
+ */
+// create a promise to count the students in the database file asynchronously
+const countStudents = (path) => new Promise((resolve, reject) => {
+	if (!path) { // if the path is empty or undefined then reject the promise with an error message
+		reject(new Error('Cannot load the database'));
 	}
-}
+	if (path) {
+		fs.readFile(path, (err, data) => {
+			if (err) {
+				reject(new Error('Cannot load the database'));
+			}
+			/**
+			 * if the data is not empty then resolve the promise with the data as a string and
+			 * the number of students
+			 */
+			if (data) {
+				const reportParts = [];
+				const fileLines = data.toString('utf-8').trim().split('\n');
+				const studentGroups = {};
+				const dbFieldNames = fileLines[0].split(',');
+				const studentPropNames = dbFieldNames.slice(0, dbFieldNames.length - 1);
 
-// Route racine qui affiche un message simple
-app.get('/', (req, res) => {
+				for (const line of fileLines.slice(1)) { // iterate over the lines of the file
+					const studentRecord = line.split(','); // split the line into an array of fields
+					// get the student's properties from the student record
+					const studentPropValues = studentRecord.slice(0, studentRecord.length - 1);
+					const field = studentRecord[studentRecord.length - 1];
+					if (!Object.keys(studentGroups).includes(field)) {
+						studentGroups[field] = [];
+					}
+					const studentEntries = studentPropNames.map((propName, idx) => [
+						propName,
+						studentPropValues[idx],
+					]);
+					studentGroups[field].push(Object.fromEntries(studentEntries));
+				}
+				// get the total number of students in the database file
+				const totalStudents = Object.values(studentGroups).reduce(
+					(pre, cur) => (pre || []).length + cur.length,
+				);
+				// add the total number of students to the report file
+				reportParts.push(`Number of students: ${totalStudents}`);
+				for (const [field, group] of Object.entries(studentGroups)) {
+					reportParts.push([
+						`Number of students in ${field}: ${group.length}.`,
+						'List:',
+						group.map((student) => student.firstname).join(', '),
+					].join(' '));
+				}
+				resolve(reportParts.join('\n'));
+			}
+		});
+	}
+});
+
+app.get('/', (_, res) => { // handle the root route
 	res.send('Hello Holberton School!');
 });
 
-// Route /students qui affiche la liste des étudiants
-app.get('/students', async (req, res) => {
-	const dbPath = process.argv[2];  // Le fichier CSV est passé en argument lors du lancement
-	try {
-		const result = await countStudents(dbPath);
-		res.send(`This is the list of our students\n${result}`);
-	} catch (error) {
-		res.status(500).send(error.message);
-	}
+app.get('/students', (_, res) => { // handle the students route
+	const responseParts = ['This is the list of our students'];
+
+	countStudents(DB_FILE) // count the students in the database file
+		.then((report) => { // if the promise is resolved then send the report
+			responseParts.push(report);
+			const responseText = responseParts.join('\n');
+			res.setHeader('Content-Type', 'text/plain');
+			res.setHeader('Content-Length', responseText.length);
+			res.statusCode = 200;
+			res.write(Buffer.from(responseText));
+		})
+		.catch((err) => { // if the promise is rejected then send an error message
+			responseParts.push(err instanceof Error ? err.message : err.toString());
+			const responseText = responseParts.join('\n');
+			res.setHeader('Content-Type', 'text/plain');
+			res.setHeader('Content-Length', responseText.length);
+			res.statusCode = 200;
+			res.write(Buffer.from(responseText));
+		});
 });
 
-// Écouter sur le port 1245
-app.listen(1245, () => {
-	console.log('Server is running on port 1245');
+app.listen(PORT, () => { // listen on port and print message to console
+	console.log(`Server listening at http://${HOST}:${PORT}`);
 });
 
-module.exports = app;  // Exporter app pour tests ou utilisation externe
+module.exports = app;
