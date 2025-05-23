@@ -1,13 +1,14 @@
-console.log("Welcome to Holberton School, what is your name?");
+console.log('Welcome to Holberton School, what is your name?');
 
-process.stdin.resume(); // Démarre la lecture de l'entrée utilisateur
-process.stdin.setEncoding('utf8'); // Définit l'encodage en UTF-8
+process.stdin.setEncoding('utf-8');
 
-process.stdin.on('data', (input) => {
-  console.log("Your name is: " + input.trim());
-  // Optionnel : process.stdin.end(); // Pour clôturer automatiquement après une saisie
+process.stdin.on('readable', () => {
+  const chunk = process.stdin.read();
+  if (chunk !== null) {
+    process.stdout.write(`Your name is: ${chunk}`);
+  }
 });
 
 process.stdin.on('end', () => {
-  console.log("This important software is now closing");
+  process.stdout.write('This important software is now closing\n');
 });

@@ -1,29 +1,35 @@
 const fs = require('fs');
 
 function countStudents(path) {
-	try {
-		const data = fs.readFileSync(path, 'utf8');
-		const lines = data.split('\n').filter(line => line.trim() !== '');
-		const students = lines.slice(1);
-		const fields = {};
+  try {
+    const data = fs.readFileSync(path, 'utf8');
+    const lines = data.trim().split('\n');
+    const studentsByField = {};
+    let totalStudents = 0;
 
-		for (const line of students) {
-			const parts = line.split(',');
-			const firstName = parts[0];
-			const field = parts[3];
+    for (const line of lines.slice(1)) {
+      const fields = line.split(',');
+      if (fields.length === 4) {
+        const firstName = fields[0].trim();
+        const field = fields[3].trim();
+        if (!studentsByField[field]) {
+          studentsByField[field] = [];
+        }
+        studentsByField[field].push(firstName);
+        totalStudents += 1;
+      }
+    }
 
-			if (!fields[field]) fields[field] = [];
-			fields[field].push(firstName);
-		}
-
-		console.log(`Number of students: ${students.length}`);
-		for (const [field, names] of Object.entries(fields)) {
-			console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
-		}
-
-	} catch (err) {
-		throw new Error('Cannot load the database');
-	}
+    console.log(`Number of students: ${totalStudents}`);
+    for (const field in studentsByField) {
+      if (Object.prototype.hasOwnProperty.call(studentsByField, field)) {
+        const students = studentsByField[field];
+        console.log(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
+      }
+    }
+  } catch (err) {
+    throw new Error('Cannot load the database');
+  }
 }
 
 module.exports = countStudents;
