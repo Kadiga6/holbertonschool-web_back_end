@@ -1,41 +1,45 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 
-function countStudents(path) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, 'utf8', (err, data) => {
-      if (err) {
-        reject(new Error('Cannot load the database'));
-        return;
-      }
+async function countStudents(path) {
+  try {
+    const data = await fs.readFile(path, 'utf8');
 
-      const lines = data.split('\n').filter(line => line.trim() !== '');
-      lines.shift();
+    const lines = data.trim().split('\n');
 
-      const fields = {};
-      let total = 0;
+    lines.shift();
 
-      for (const line of lines) {
-        const parts = line.split(',');
-        const firstName = parts[0];
-        const field = parts[3];
+    const studentsByField = {};
 
-        if (field) {
-          if (!fields[field]) {
-            fields[field] = [];
-          }
-          fields[field].push(firstName);
-          total += 1;
+    let totalStudents = 0;
+
+    for (const line of lines) {
+      const fields = line.split(',');
+      if (fields.length === 4) {
+        const firstName = fields[0].trim();
+        const field = fields[3].trim();
+
+        if (!studentsByField[field]) {
+          studentsByField[field] = [];
         }
-      }
 
-      console.log(`Number of students: ${total}`);
-      for (const [field, names] of Object.entries(fields)) {
-        console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+        studentsByField[field].push(firstName);
+        totalStudents += 1;
       }
+    }
 
-      resolve();
-    });
-  });
+    console.log(`Number of students: ${totalStudents}`);
+
+    for (const field in studentsByField) {
+      if (Object.prototype.hasOwnProperty.call(studentsByField, field)) {
+        const students = studentsByField[field];
+        console.log(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
+      }
+    }
+
+    return Promise.resolve();
+  } catch (err) {
+    return Promise.reject(new Error('Cannot load the database'));
+  }
 }
 
 module.exports = countStudents;
