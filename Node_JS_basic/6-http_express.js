@@ -10,7 +10,9 @@ app.get('/', (req, res) => {
 });
 
 // Le serveur écoute sur le port 1245
-app.listen(1245);
+app.listen(1245, () => {
+	console.log("Server is running on port 1245");
+});
 
 // On exporte l'application pour qu'elle puisse être utilisée ailleurs
 module.exports = app;
