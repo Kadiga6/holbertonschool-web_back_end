@@ -9,12 +9,10 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
     """Run 'n' coroutines and return a list of delays (floats) in the order they complete."""
     all_delays: List[float] = []
     list_of_tasks: List[Any] = []
-
-    for _ in range(n):
-        list_of_tasks.append(asyncio.create_task(wait_random(max_delay)))
-
-    for task in asyncio.as_completed(list_of_tasks):
-        completed = await task
-        all_delays.append(completed)
-
-    return all_delay
+    for i in range(n):
+    List_of_tasks.append(asyncio.create_task(wait_random(max_delay)))
+    for results in asyncio.as_completed(List_of_tasks):
+        completed = await results
+        allDelays.append(completed)
+        """ return the list of all the delays (float values) """
+        return allDelays
