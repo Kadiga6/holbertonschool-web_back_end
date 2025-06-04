@@ -21,4 +21,4 @@ async def task_wait_n(n: int, max_delay: int) -> List[float]:
         # as_completed order tasks by end of execution (fastest first)
         delay = await task
         delays.append(delay)
-    return delays 
+    return delays
